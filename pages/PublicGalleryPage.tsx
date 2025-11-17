@@ -88,9 +88,26 @@ const PublicGalleryPage: React.FC<{onNavigateBack: () => void}> = ({ onNavigateB
     const handleDownload = async (e: React.MouseEvent, imageUrl: string, prompt: string) => {
         e.stopPropagation();
         try {
-            const response = await fetch(imageUrl);
-            if (!response.ok) throw new Error('Network response was not ok.');
-            const blob = await response.blob();
+            let blob: Blob;
+            if (imageUrl.startsWith('data:')) {
+                const dataURLtoBlob = (dataURL: string): Blob => {
+                    const parts = dataURL.split(',');
+                    const contentType = parts[0].split(':')[1].split(';')[0];
+                    const raw = window.atob(parts[1]);
+                    const rawLength = raw.length;
+                    const uInt8Array = new Uint8Array(rawLength);
+                    for (let i = 0; i < rawLength; ++i) {
+                        uInt8Array[i] = raw.charCodeAt(i);
+                    }
+                    return new Blob([uInt8Array], { type: contentType });
+                };
+                blob = dataURLtoBlob(imageUrl);
+            } else {
+                const response = await fetch(imageUrl);
+                if (!response.ok) throw new Error('Network response was not ok.');
+                blob = await response.blob();
+            }
+
             const url = window.URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
@@ -153,9 +170,26 @@ const PublicGalleryPage: React.FC<{onNavigateBack: () => void}> = ({ onNavigateB
             if (isDownloading) return;
             setIsDownloading(true);
             try {
-                const response = await fetch(image.imageUrl);
-                if (!response.ok) throw new Error('Network response was not ok.');
-                const blob = await response.blob();
+                let blob: Blob;
+                if (image.imageUrl.startsWith('data:')) {
+                    const dataURLtoBlob = (dataURL: string): Blob => {
+                        const parts = dataURL.split(',');
+                        const contentType = parts[0].split(':')[1].split(';')[0];
+                        const raw = window.atob(parts[1]);
+                        const rawLength = raw.length;
+                        const uInt8Array = new Uint8Array(rawLength);
+                        for (let i = 0; i < rawLength; ++i) {
+                            uInt8Array[i] = raw.charCodeAt(i);
+                        }
+                        return new Blob([uInt8Array], { type: contentType });
+                    };
+                    blob = dataURLtoBlob(image.imageUrl);
+                } else {
+                    const response = await fetch(image.imageUrl);
+                    if (!response.ok) throw new Error('Network response was not ok.');
+                    blob = await response.blob();
+                }
+
                 const url = window.URL.createObjectURL(blob);
                 const link = document.createElement('a');
                 link.href = url;

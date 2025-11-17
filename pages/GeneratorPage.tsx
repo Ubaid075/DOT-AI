@@ -103,15 +103,24 @@ const GeneratorPage: React.FC<GeneratorPageProps> = ({ onBuyCredits }) => {
         const [isDownloading, setIsDownloading] = useState(false);
         if (!generatedImage) return null;
     
-        const handleActualDownload = async () => {
+        const handleActualDownload = () => {
             if (isDownloading) return;
             setIsDownloading(true);
             try {
-                const response = await fetch(generatedImage.imageUrl);
-                if (!response.ok) {
-                    throw new Error('Network response was not ok.');
-                }
-                const blob = await response.blob();
+                // Helper function to convert Data URL to Blob
+                const dataURLtoBlob = (dataURL: string): Blob => {
+                    const parts = dataURL.split(',');
+                    const contentType = parts[0].split(':')[1].split(';')[0];
+                    const raw = window.atob(parts[1]);
+                    const rawLength = raw.length;
+                    const uInt8Array = new Uint8Array(rawLength);
+                    for (let i = 0; i < rawLength; ++i) {
+                        uInt8Array[i] = raw.charCodeAt(i);
+                    }
+                    return new Blob([uInt8Array], { type: contentType });
+                };
+
+                const blob = dataURLtoBlob(generatedImage.imageUrl);
                 const url = window.URL.createObjectURL(blob);
                 const link = document.createElement('a');
                 link.href = url;

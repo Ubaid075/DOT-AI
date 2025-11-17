@@ -13,11 +13,21 @@ const FavoritesPage: React.FC<FavoritesPageProps> = ({ onNavigateBack }) => {
 
     const favorites = user?.favoriteImages || [];
 
-    const handleDownload = async (imageUrl: string, prompt: string = 'favorite-image') => {
+    const handleDownload = (imageUrl: string, prompt: string = 'favorite-image') => {
         try {
-            const response = await fetch(imageUrl);
-            if (!response.ok) throw new Error('Network response was not ok.');
-            const blob = await response.blob();
+            const dataURLtoBlob = (dataURL: string): Blob => {
+                const parts = dataURL.split(',');
+                const contentType = parts[0].split(':')[1].split(';')[0];
+                const raw = window.atob(parts[1]);
+                const rawLength = raw.length;
+                const uInt8Array = new Uint8Array(rawLength);
+                for (let i = 0; i < rawLength; ++i) {
+                    uInt8Array[i] = raw.charCodeAt(i);
+                }
+                return new Blob([uInt8Array], { type: contentType });
+            };
+
+            const blob = dataURLtoBlob(imageUrl);
             const url = window.URL.createObjectURL(blob);
 
             const link = document.createElement('a');
